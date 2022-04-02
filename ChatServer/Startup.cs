@@ -26,7 +26,9 @@ namespace ChatServer
         {
             //TODO: Delete
             //services.AddRazorPages();
-            services.AddSingleton<ISocketServer,SocketChat>();
+            services
+                .AddSingleton<ChatRoom>()
+                .AddSingleton<ISocketServer,SocketChat>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

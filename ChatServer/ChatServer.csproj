@@ -7,9 +7,11 @@
   <ItemGroup>
     <None Remove="Listener\" />
     <None Remove="Model\" />
+    <None Remove="Common\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Listener\" />
     <Folder Include="Model\" />
+    <Folder Include="Common\" />
   </ItemGroup>
 </Project>

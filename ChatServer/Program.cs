@@ -23,11 +23,9 @@ namespace ChatServer
             {
                 var services = scope.ServiceProvider;
                 var socketServer = services.GetRequiredService<ISocketServer>();
+                var chatRoom = services.GetRequiredService<ChatRoom>();
 
-                socketServer.OnMessageArrived += (sender, args) => {
-                    Console.WriteLine("arrived: " + args.Data);
-                };
-                socketServer.Initialize();
+                socketServer.Initialize(chatRoom);
 
             }
 

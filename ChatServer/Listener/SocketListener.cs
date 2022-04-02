@@ -10,17 +10,15 @@ namespace ChatServer.Listener
 
     public interface ISocketServer
     {
-        public void Initialize();
-        public EventHandler<ChatCommand> OnMessageArrived { get; set; }
+        public void Initialize(ChatRoom chatRoom);
     }
 
     public class SocketChat : ISocketServer
     {
-        private string EOF = "<EOF>";
-        public EventHandler<ChatCommand> OnMessageArrived { get; set; }
-
-        public void Initialize()
+        ChatRoom room;
+        public void Initialize(ChatRoom chatRoom)
         {
+            room = chatRoom;
             Task.Run(() =>
             {
                 // Incoming data from the client.  
@@ -61,26 +59,23 @@ namespace ChatServer.Listener
                         {
                             int bytesRec = handler.Receive(bytes);
                             data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
-                            if (data.IndexOf(EOF) > -1)
+                            if (data.IndexOf(ChatBase.EOF) > -1)
                             {
                                 break;
                             }
                         }
 
-                        if (OnMessageArrived != null) {
-                            ChatCommand command = GetChatCommandFromDataReceived(data);
-                            OnMessageArrived(this, command);
-                        }
+                        ChatCommand command = GetChatCommandFromDataReceived(data);
+
+                        var response = room.GetChatResponseFromCommand(command, handler);
 
                         // Show the data on the console.  
-                        Console.WriteLine("Text received : {0}", data);
+                        //Console.WriteLine("Text received : {0}", data);
 
                         // Echo the data back to the client.  
-                        byte[] msg = Encoding.ASCII.GetBytes(data);
+                        byte[] msg = Encoding.ASCII.GetBytes(response.ToString());
 
                         handler.Send(msg);
-                        handler.Shutdown(SocketShutdown.Both);
-                        handler.Close();
                     }
 
                 }
@@ -98,7 +93,6 @@ namespace ChatServer.Listener
         }
         private ChatCommand GetChatCommandFromDataReceived(string data)
         {
-            data = data.Replace(EOF, string.Empty);
             return ChatCommand.Parse(data);
         }
     }
