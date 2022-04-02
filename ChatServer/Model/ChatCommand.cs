@@ -33,6 +33,9 @@ namespace ChatServer.Model
 
         public static ChatResponse ConnectionCount(int count)
             => new ChatResponse("200", false, "" + count);
+
+        public static ChatResponse SimpleMessage(Message message)
+            => new ChatResponse("200", false, message.ToString());
     }
 
 
