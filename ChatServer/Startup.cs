@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ChatServer.Listener;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,8 +25,8 @@ namespace ChatServer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            //TODO: Delete
-            //services.AddRazorPages();
+            services.AddControllers();
+
             services
                 .AddSingleton<ChatRoom>()
                 .AddSingleton<ISocketServer,SocketChat>();
@@ -54,7 +55,14 @@ namespace ChatServer
 
             app.UseEndpoints(endpoints =>
             {
-                //endpoints.MapRazorPages();
+                endpoints.MapControllers();
+
+                endpoints.MapGet("/", async context =>
+                {
+                    System.Reflection.AssemblyName current = System.Reflection.Assembly.GetExecutingAssembly().GetName();
+                    string appVersion = $"{current.Name} v.{current.Version}";
+                    await context.Response.WriteAsync(appVersion);
+                });
             });
         }
     }

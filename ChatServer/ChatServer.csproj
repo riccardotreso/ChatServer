@@ -8,10 +8,12 @@
     <None Remove="Listener\" />
     <None Remove="Model\" />
     <None Remove="Common\" />
+    <None Remove="Controllers\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Listener\" />
     <Folder Include="Model\" />
     <Folder Include="Common\" />
+    <Folder Include="Controllers\" />
   </ItemGroup>
 </Project>

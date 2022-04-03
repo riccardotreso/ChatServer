@@ -20,6 +20,7 @@ namespace ChatServer
     {
         public string NickName { get; set; }
         public string Text { get; set; }
+        public DateTime Time { get; private set; } = DateTime.Now;
 
         public override string ToString()
         {
@@ -32,14 +33,27 @@ namespace ChatServer
         List<ClientConnected> clients;
         List<Message> messages;
 
+        public int GetCountMessageFromUserId(string id)
+        {
+            string nickName = clients.FirstOrDefault(x => x.Identity.Id.Equals(id))?.Identity.NickName ?? string.Empty;
+            if (!string.IsNullOrEmpty(nickName))
+                return messages.Count(x => x.NickName.Equals(nickName));
+            return -1;
+        }
+
         public ChatRoom()
         {
             clients = new List<ClientConnected>();
             messages = new List<Message>();
         }
+        public List<KeyValuePair<string, string>> GetClientConnected()
+            => clients.ToDictionary(k => k.Identity.Id, v => v.Identity.NickName).ToList();
+
         public void Logout(Guid clientId)
         {
-            clients.Remove(clients.First(x => x.ClientId.Equals(clientId)));
+            var clientToDelete = clients.FirstOrDefault(x => x.ClientId.Equals(clientId));
+            if (clientToDelete != null)
+                clients.Remove(clientToDelete);
         }
         public ChatResponse GetChatResponseFromCommand(ChatCommand chatCommand, Socket socket, Guid clientId)
         {
@@ -97,6 +111,10 @@ namespace ChatServer
         private bool NickNameNotExists(string NickName)
             => !clients.Any(c => c.Identity.NickName.Equals(NickName));
 
-        
+        public List<string> GetAllMessages()
+            => messages
+                .OrderBy(x=> x.Time)
+                .Select(x=> x.ToString())
+                .ToList();
     }
 }
