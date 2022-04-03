@@ -21,9 +21,6 @@ namespace ChatServer.Listener
             room = chatRoom;
             Task.Run(() =>
             {
-                // Data buffer for incoming data.  
-                byte[] bytes = new Byte[1024];
-
                 // Establish the local endpoint for the socket.  
                 // Dns.GetHostName returns the name of the
                 // host running the application.
@@ -50,47 +47,8 @@ namespace ChatServer.Listener
                         // Program is suspended while waiting for an incoming connection.  
                         Socket handler = listener.Accept();
 
-                        Task.Run(() =>
-                        {
-                            // Incoming data from the client.  
-                            
-                            while (handler.Connected)
-                            {
-                                // An incoming connection needs to be processed.
-                                string data = null;
-                                while (true)
-                                {
-                                    int bytesRec = handler.Receive(bytes);
-                                    data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
-                                    if (data.IndexOf(ChatBase.EOF) > -1)
-                                    {
-                                        break;
-                                    }
+                        ClientListener.Inizialize(handler, room);
 
-                                    if (data.Length == 0) {
-                                        handler.Shutdown(SocketShutdown.Both);
-                                        handler.Close();
-                                        break;
-                                    }
-                                }
-
-                                if (data.Length > 0)
-                                {
-                                    ChatCommand command = GetChatCommandFromDataReceived(data);
-
-                                    var response = room.GetChatResponseFromCommand(command, handler);
-
-                                    // Show the data on the console.  
-                                    //Console.WriteLine("Text received : {0}", data);
-
-                                    // Echo the data back to the client.  
-                                    byte[] msg = Encoding.ASCII.GetBytes(response.ToString());
-
-                                    handler.Send(msg);
-                                }
-                            }
-                        });
-                        
                     }
 
                 }
@@ -106,10 +64,59 @@ namespace ChatServer.Listener
             });
 
         }
-        private ChatCommand GetChatCommandFromDataReceived(string data)
+        
+    }
+
+    public static class ClientListener {
+        public static void Inizialize(Socket handler, ChatRoom room) {
+            Task.Run(() =>
+            {
+                Guid ClientId = Guid.NewGuid();
+                // Data buffer for incoming data.  
+                byte[] bytes = new byte[1024];
+                // Incoming data from the client.  
+
+                while (handler.Connected)
+                {
+                    // An incoming connection needs to be processed.
+                    string data = null;
+                    while (true)
+                    {
+                        int bytesRec = handler.Receive(bytes);
+                        data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
+                        if (data.IndexOf(ChatBase.EOF) > -1)
+                        {
+                            break;
+                        }
+
+                        if (data.Length == 0)
+                        {
+                            handler.Shutdown(SocketShutdown.Both);
+                            handler.Close();
+                            room.Logout(ClientId);
+                            break;
+                        }
+                    }
+
+                    if (data.Length > 0)
+                    {
+                        ChatCommand command = GetChatCommandFromDataReceived(data);
+
+                        var response = room.GetChatResponseFromCommand(command, handler, ClientId);
+
+                        byte[] msg = Encoding.ASCII.GetBytes(response.ToString());
+
+                        handler.Send(msg);
+                    }
+                }
+            });
+        }
+
+        private static ChatCommand GetChatCommandFromDataReceived(string data)
         {
             return ChatCommand.Parse(data);
         }
+
     }
 
 }

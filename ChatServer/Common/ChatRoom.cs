@@ -13,6 +13,7 @@ namespace ChatServer
     {
         public User Identity { get; set; }
         public Socket Connection { get; set; }
+        public Guid ClientId { get; set; }
     }
 
     public class Message
@@ -36,25 +37,28 @@ namespace ChatServer
             clients = new List<ClientConnected>();
             messages = new List<Message>();
         }
-
-        public ChatResponse GetChatResponseFromCommand(ChatCommand chatCommand, Socket socket)
+        public void Logout(Guid clientId)
+        {
+            clients.Remove(clients.First(x => x.ClientId.Equals(clientId)));
+        }
+        public ChatResponse GetChatResponseFromCommand(ChatCommand chatCommand, Socket socket, Guid clientId)
         {
 
             var response = chatCommand.Command switch
             {
-                Command.LOGIN => Login(chatCommand, socket),
+                Command.LOGIN => Login(chatCommand, socket, clientId),
                 Command.TEXT => TextAndPropagate(chatCommand),
                 _ => null
             };
 
             return response;
         }
-        private ChatResponse Login(ChatCommand chatCommand, Socket socket)
+        private ChatResponse Login(ChatCommand chatCommand, Socket socket, Guid clientId)
         {
             string nickname = chatCommand.Identity.NickName;
             if (NickNameNotExists(nickname))
             {
-                var identity = AddClient(nickname, socket);
+                var identity = AddClient(nickname, socket, clientId);
                 return ChatResponseFactory.LoginSucceeded(identity.Id);
             }
             return ChatResponseFactory.NickNameNotValid(chatCommand.Identity.NickName);
@@ -80,19 +84,19 @@ namespace ChatServer
             });
         }
 
-        private User AddClient(string NickName, Socket socket)
+        private User AddClient(string NickName, Socket socket, Guid clientId)
         {
             User Identity = new User
             {
                 Id = (clients.Count + 1).ToString(),
                 NickName = NickName
             };
-            clients.Add(new ClientConnected { Connection = socket, Identity = Identity });
+            clients.Add(new ClientConnected { Connection = socket, Identity = Identity, ClientId = clientId });
             return Identity;
         }
         private bool NickNameNotExists(string NickName)
             => !clients.Any(c => c.Identity.NickName.Equals(NickName));
 
-
+        
     }
 }
