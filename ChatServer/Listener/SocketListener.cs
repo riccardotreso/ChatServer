@@ -80,7 +80,7 @@ namespace ChatServer.Listener
                 {
                     // An incoming connection needs to be processed.
                     string data = null;
-                    while (true)
+                    while (handler.Connected)
                     {
                         int bytesRec = handler.Receive(bytes);
                         data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
