@@ -9,25 +9,6 @@ using System.Text;
 namespace ChatServer
 {
 
-    public class ClientConnected
-    {
-        public User Identity { get; set; }
-        public Socket Connection { get; set; }
-        public Guid ClientId { get; set; }
-    }
-
-    public class Message
-    {
-        public string NickName { get; set; }
-        public string Text { get; set; }
-        public DateTime Time { get; private set; } = DateTime.Now;
-
-        public override string ToString()
-        {
-            return $"{NickName} says >> {Text}";
-        }
-    }
-
     public class ChatRoom
     {
         List<ClientConnected> clients;
@@ -81,11 +62,14 @@ namespace ChatServer
         private ChatResponse TextAndPropagate(ChatCommand chatCommand)
         {
             var message = new Message { Text = chatCommand.Data, NickName = chatCommand.Identity.NickName };
-            messages.Add(message);
-
-            Propagate(message);
+            AddMessageAndPropagate(message);
 
             return ChatResponseFactory.Ack();
+        }
+
+        public void AddMessageAndPropagate(Message message) {
+            messages.Add(message);
+            Propagate(message);
         }
 
         private void Propagate(Message messageToPropagate)
@@ -94,7 +78,7 @@ namespace ChatServer
             {
                 byte[] msg = Encoding.ASCII.GetBytes(ChatResponseFactory.SimpleMessage(messageToPropagate).ToString());
 
-                _ = clients.Select(c => c.Connection.Send(msg)).ToList();
+                _ = clients.Select(c => c.Connection?.Send(msg)).ToList();
             });
         }
 
