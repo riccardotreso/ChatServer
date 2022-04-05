@@ -29,5 +29,12 @@ namespace ChatServer.Controllers
             return Ok(room.GetCountMessageFromUserId(id));
         }
 
+        [HttpPost]
+        public IActionResult Post([FromBody] Message message)
+        {
+            room.AddMessageAndPropagate(message);
+            return Accepted(message);
+        }
+
     }
 }

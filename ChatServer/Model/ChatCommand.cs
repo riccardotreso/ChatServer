@@ -72,6 +72,11 @@ namespace ChatServer.Model
             }
         }
 
+        public ChatCommand(Command command)
+        {
+            Command = command;
+        }
+
         public Command Command { get; set; }
         public string Data { get; set; }
         public User Identity { get; set; }

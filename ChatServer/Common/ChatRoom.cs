@@ -81,11 +81,16 @@ namespace ChatServer
         private ChatResponse TextAndPropagate(ChatCommand chatCommand)
         {
             var message = new Message { Text = chatCommand.Data, NickName = chatCommand.Identity.NickName };
-            messages.Add(message);
-
-            Propagate(message);
+            
+            AddMessageAndPropagate(message);
 
             return ChatResponseFactory.Ack();
+        }
+
+        public void AddMessageAndPropagate(Message message)
+        {
+            messages.Add(message);
+            Propagate(message);
         }
 
         private void Propagate(Message messageToPropagate)
