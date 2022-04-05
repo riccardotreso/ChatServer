@@ -99,7 +99,7 @@ namespace ChatServer
             {
                 byte[] msg = Encoding.ASCII.GetBytes(ChatResponseFactory.SimpleMessage(messageToPropagate).ToString());
 
-                _ = clients.Select(c => c.Connection.Send(msg)).ToList();
+                _ = clients.Select(c => c.Connection?.Send(msg)).ToList();
             });
         }
 
